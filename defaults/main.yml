@@ -1,0 +1,4 @@
+---
+laravel_app_path: /var/www/laravel_app
+laravel_user: www-data
+laravel_group: www-data
