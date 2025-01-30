@@ -1,4 +1,33 @@
 ---
+# Path where the Laravel application will be installed
 laravel_app_path: /var/www/laravel_app
+
+# User and group that will own the Laravel files
 laravel_user: www-data
 laravel_group: www-data
+
+# Laravel environment settings
+laravel_env: production
+laravel_app_key_generate: true
+laravel_app_debug: false
+laravel_app_url: "http://localhost"
+
+# Laravel storage directory permissions
+laravel_storage_dir_mode: "0775"
+laravel_storage_file_mode: "0664"
+
+# Laravel cache directory permissions
+laravel_cache_dir_mode: "0775"
+
+# Database configuration
+laravel_db_connection: mysql
+laravel_db_host: "127.0.0.1"
+laravel_db_port: 3306
+laravel_db_database: laravel
+laravel_db_username: laravel
+laravel_db_password: ""  # Should be overridden in vault/vars
+
+# Cache configuration
+laravel_cache_driver: file
+laravel_session_driver: file
+laravel_queue_driver: sync

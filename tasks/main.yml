@@ -1,64 +1,70 @@
 ---
-- name: Ensure Laravel application folder exists
-  ansible.builtin.file:
-    path: "{{ laravel_app_path }}"
-    state: directory
-    owner: "{{ laravel_user }}"
-    group: "{{ laravel_group }}"
-    mode: "0755"
+- name: Ensure Laravel directory structure exists
+  block:
+    - name: Ensure Laravel application folder exists
+      ansible.builtin.file:
+        path: "{{ laravel_app_path }}"
+        state: directory
+        owner: "{{ laravel_user }}"
+        group: "{{ laravel_group }}"
+        mode: "0755"
 
-- name: Create necessary subdirectories for Laravel
-  ansible.builtin.file:
-    path: "{{ laravel_app_path }}/{{ item }}"
-    state: directory
-    owner: "{{ laravel_user }}"
-    group: "{{ laravel_group }}"
-    mode: "0775"
-  loop:
-    - storage/app
-    - storage/framework
-    - storage/framework/cache
-    - storage/framework/sessions
-    - storage/framework/views
-    - storage/logs
-    - bootstrap/cache
+    - name: Create necessary subdirectories for Laravel
+      ansible.builtin.file:
+        path: "{{ laravel_app_path }}/{{ item }}"
+        state: directory
+        owner: "{{ laravel_user }}"
+        group: "{{ laravel_group }}"
+        mode: "{{ laravel_storage_dir_mode }}"
+      loop:
+        - storage/app
+        - storage/app/public
+        - storage/framework
+        - storage/framework/cache
+        - storage/framework/sessions
+        - storage/framework/views
+        - storage/logs
+        - bootstrap/cache
+  tags:
+    - laravel
+    - laravel_directories
 
-- name: Set permissions for storage and bootstrap/cache
-  ansible.builtin.file:
-    path: "{{ laravel_app_path }}/{{ item }}"
-    owner: "{{ laravel_user }}"
-    group: "{{ laravel_group }}"
-    mode: "0777"
-  loop:
-    - storage
-    - bootstrap/cache
+- name: Configure Laravel permissions
+  block:
+    - name: Set permissions for storage and bootstrap/cache
+      ansible.builtin.file:
+        path: "{{ laravel_app_path }}/{{ item }}"
+        state: directory
+        owner: "{{ laravel_user }}"
+        group: "{{ laravel_group }}"
+        mode: "{{ laravel_storage_dir_mode }}"
+        recurse: yes
+      loop:
+        - storage
+        - bootstrap/cache
+  tags:
+    - laravel
+    - laravel_permissions
 
-- name: Ensure .env file placeholder exists
-  ansible.builtin.copy:
-    content: |
-      # Laravel environment file placeholder
-      APP_NAME=Laravel
-      APP_ENV=local
-      APP_DEBUG=true
-      APP_KEY=
-      APP_URL=http://localhost
+- name: Configure Laravel environment
+  block:
+    - name: Generate Laravel .env file
+      ansible.builtin.template:
+        src: env.j2
+        dest: "{{ laravel_app_path }}/.env"
+        owner: "{{ laravel_user }}"
+        group: "{{ laravel_group }}"
+        mode: "0644"
+        force: false
+      notify: Clear Laravel cache
 
-      DB_CONNECTION=mysql
-      DB_HOST=127.0.0.1
-      DB_PORT=3306
-      DB_DATABASE=laravel
-      DB_USERNAME=root
-      DB_PASSWORD=
-    dest: "{{ laravel_app_path }}/.env"
-    owner: "{{ laravel_user }}"
-    group: "{{ laravel_group }}"
-    mode: "0644"
-    force: false
-
-- name: Copy .htaccess file to Laravel root
-  ansible.builtin.copy:
-    src: htaccess
-    dest: "{{ laravel_app_path }}/.htaccess"
-    owner: "{{ laravel_user }}"
-    group: "{{ laravel_group }}"
-    mode: "0644"
+    - name: Copy .htaccess file
+      ansible.builtin.copy:
+        src: htaccess
+        dest: "{{ laravel_app_path }}/.htaccess"
+        owner: "{{ laravel_user }}"
+        group: "{{ laravel_group }}"
+        mode: "0644"
+  tags:
+    - laravel
+    - laravel_config

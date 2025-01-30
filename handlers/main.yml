@@ -1,1 +1,8 @@
 ---
+- name: Clear Laravel cache
+  ansible.builtin.command:
+    cmd: php artisan cache:clear
+    chdir: "{{ laravel_app_path }}"
+  become: true
+  become_user: "{{ laravel_user }}"
+  when: laravel_app_path is defined
